@@ -6,7 +6,7 @@ const mongoose = require('mongoose')
 
 const connectString =`mongoose://localhost:...`
 
-mongoose.connect(connectString).then(_ => console.log("connect success!")).catch(err=> console.log("Error Connected!"))
+mongoose.connect(connectString).then(_ => console.log("connect success!")).catch(err=> console.log("Error db Connected!"))
 
 // dev
 if(1 === 0){

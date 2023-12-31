@@ -1,10 +1,12 @@
 "use strict";
 
 const mongoose = require("mongoose");
+const {db: {host, port, name}} = require('../configs/config.mongodb')
+const connectString = `mongodb://${host}:${port}/${name}`;
 
-const connectString = `m`;
+const { countConnect } = require("../helpers/check.connect");
 
-mongoose.connect();
+console.log('connectString:', connectString)
 
 // This is Singleton pattern which help to create a single instance, init one time and use whole life.
 class Database {
@@ -20,8 +22,8 @@ class Database {
 
         mongoose
             .connect(connectString)
-            .then((_) => console.log(`Connected Mongodb Success!!`))
-            .catch((err) => console.log(`Error Connected!`));
+            .then((_) => console.log(`Connected Mongodb Success!!`, countConnect()))
+            .catch((err) => console.log(`Error db Connected!`));
     }
 
     static getInstance() {
@@ -29,10 +31,10 @@ class Database {
             Database.instance = new Database();
         }
 
-        return Database.instance
+        return Database.instance;
     }
 }
 
 const instanceMongoDb = Database.getInstance();
 
-module.exports = instanceMongoDb
+module.exports = instanceMongoDb;
