@@ -1,12 +1,15 @@
 "use strict";
 
-const shopModel = require("../models/shop.model");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+
 const KeyTokenService = require("./keyToken.service");
+const { findByEmail } = require("./shop.service");
+
+const shopModel = require("../models/shop.model");
 const { createTokenPair } = require("../auth/authUtils");
-const { getInfoData } = require("../utils");
-const { BadRequestError } = require("../core/error.response");
+const { getInfoData, getKeyPair } = require("../utils");
+const { BadRequestError, AuthFailureError } = require("../core/error.response");
 
 const RoleShop = {
     SHOP: "SHOP",
@@ -16,6 +19,62 @@ const RoleShop = {
 };
 
 class AccessService {
+    /** Login
+     * 1 - check email in dbs
+     * 2 - match password
+     * 3 - create AT & RT and save
+     * 4 - generate tokens
+     * 5 - get data return login
+     * @param {*} param0
+     */
+    static login = async ({ email, password, refreshToken = null }) => {
+        // 1
+        const foundedShop = await findByEmail({ email });
+        if (!foundedShop) throw new BadRequestError("Shop not registered");
+
+        // 2
+        const match = bcrypt.compare(password, foundedShop.password);
+        if (!match) throw new AuthFailureError("Authentication Error");
+
+        // 3
+        const { privateKey, publicKey } = getKeyPair();
+
+        // 4
+        const { _id: userId } = foundedShop;
+        const tokens = await createTokenPair(
+            { userId, email },
+            publicKey,
+            privateKey
+        );
+
+        await KeyTokenService.createKeyToken({
+            refreshToken: tokens.refreshToken,
+            userId,
+            privateKey,
+            publicKey,
+        });
+
+        // 5
+        return {
+            metadata: {
+                shop: getInfoData({
+                    fields: ["_id", "name", "email"],
+                    object: foundedShop,
+                }),
+                tokens,
+            },
+        };
+    };
+
+    static logout = async (keyStore) => {
+        try {
+            const delKey = await KeyTokenService.removeKeyById(keyStore._id);
+            return delKey;
+        } catch (error) {
+            throw error;
+        }
+    };
+
     static signUp = async ({ name, email, password }) => {
         //.lean() return a pure js object which lighter than without lean() ~30 times
         const holderShop = await shopModel.findOne({ email }).lean();
@@ -60,11 +119,7 @@ class AccessService {
              * );
              */
 
-            const privateKey = crypto.randomBytes(64).toString("hex");
-            const publicKey = crypto.randomBytes(64).toString("hex");
-
-            console.log({ privateKey, publicKey }); // save to collection KeyStore
-
+            const { privateKey, publicKey } = getKeyPair();
             /**
              * privateKey, publicKey format: {
              *   privateKey: '17054c0ad1b5ac3ef4ac0d787abacf90aab8f117079aacc12f5a3f5e26f038aa2fbc48d5c9b0fd178e0f899620a4a4f08bd0dd61c4cb5556b4b5321040199171',
