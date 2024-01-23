@@ -7,9 +7,14 @@ const KeyTokenService = require("./keyToken.service");
 const { findByEmail } = require("./shop.service");
 
 const shopModel = require("../models/shop.model");
-const { createTokenPair } = require("../auth/authUtils");
+const { createTokenPair, verifyJWT } = require("../auth/authUtils");
 const { getInfoData, getKeyPair } = require("../utils");
-const { BadRequestError, AuthFailureError } = require("../core/error.response");
+const {
+    BadRequestError,
+    AuthFailureError,
+    ForbiddenError,
+} = require("../core/error.response");
+const keyTokenModel = require("../models/keyToken.model");
 
 const RoleShop = {
     SHOP: "SHOP",
@@ -19,6 +24,71 @@ const RoleShop = {
 };
 
 class AccessService {
+    /**
+     * check this token used?
+     */
+
+    static handlerRefreshToken = async (refreshToken) => {
+        console.log("32 refreshtoken", refreshToken);
+        const foundToken = await KeyTokenService.findByRefreshTokenUsed(
+            refreshToken
+        );
+
+        console.log({ foundToken });
+
+        if (foundToken) {
+            // decode xem hacker la ai? vi refresh token chi duoc dung 1 lan de tao lai refreshToken
+            const { userId, email } = await verifyJWT(
+                refreshToken,
+                foundToken.privateKey
+            );
+
+            console.log({ userId, email });
+            await KeyTokenService.deleteKeyById(userId);
+            throw new ForbiddenError(
+                "Something wrong happened !! pls re-login"
+            );
+        }
+
+        const holderToken = await KeyTokenService.findByRefreshToken(
+            refreshToken
+        );
+        if (!holderToken) throw new AuthFailureError("Shop not registered 53");
+
+        // verify Token
+        const { userId, email } = await verifyJWT(
+            refreshToken,
+            holderToken.privateKey
+        );
+        console.log("[2]--", { userId, email });
+
+        // check UserId
+        const foundShop = await findByEmail({ email });
+        if (!foundShop) throw new AuthFailureError("Shop not registered 64");
+
+        // create 1 cap moi
+        const tokens = await createTokenPair(
+            { userId, email },
+            holderToken.publicKey,
+            holderToken.privateKey
+        );
+
+        // update token
+        await holderToken.updateOne({
+            $set: {
+                refreshToken: tokens.refreshToken,
+            },
+            $addToSet: {
+                refreshTokensUsed: refreshToken, // da duoc su dung de lay token moi roi
+            },
+        });
+
+        return {
+            user: { userId, email },
+            tokens,
+        };
+    };
+
     /** Login
      * 1 - check email in dbs
      * 2 - match password
@@ -30,7 +100,7 @@ class AccessService {
     static login = async ({ email, password, refreshToken = null }) => {
         // 1
         const foundedShop = await findByEmail({ email });
-        if (!foundedShop) throw new BadRequestError("Shop not registered");
+        if (!foundedShop) throw new BadRequestError("Shop not registered 100");
 
         // 2
         const match = bcrypt.compare(password, foundedShop.password);

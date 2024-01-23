@@ -14,4 +14,14 @@ router.post("/shop/login", asyncHandler(accessController.login));
 router.use(authentication);
 ////////////////////
 router.post("/shop/logout", asyncHandler(accessController.logout));
+router.post(
+    "/shop/handlerRefreshToken",
+    asyncHandler(accessController.handlerRefreshToken)
+);
+
+router.get("/health", (req, res, next) => {
+    return res.status(200).json({
+        status: OK,
+    });
+});
 module.exports = router;
