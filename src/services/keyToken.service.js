@@ -11,15 +11,6 @@ class KeyTokenService {
         refreshToken,
     }) => {
         try {
-            /** Easy way
-             * const tokens = await keyTokenModel.create({
-             *     user: userId,
-             *     publicKey,
-             *     privateKey
-             * });
-             * return tokens ? tokens.publicKey : null
-             */
-
             const filter = { user: userId },
                 update = {
                     publicKey,
@@ -39,7 +30,10 @@ class KeyTokenService {
 
             return tokens && tokens.publicKey;
         } catch (err) {
-            return err;
+            return {
+                code: "xxxx",
+                message: "keyStore error",
+            };
         }
     };
 

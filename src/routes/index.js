@@ -1,14 +1,16 @@
 "use strict";
 
 const express = require("express");
-const { apiKey, permission } = require("../auth/checkAuth");
+const { verifyApiKey, permission } = require("../auth/checkAuth");
 const router = express.Router();
 
-// check apiKey
-router.use(apiKey);
-// check permission
+// verifyApiKey to check if x-api-key exist then req.apiKey = find
+router.use(verifyApiKey);
+
+// check permission which map from x-api-key
 router.use(permission("0000"));
 
 router.use("/v1/api", require("./access"));
+router.use("/v1/api/product", require("./product"));
 
 module.exports = router;

@@ -7,16 +7,20 @@ class AccessController {
     handlerRefreshToken = async (req, res, next) => {
         new SuccessResponse({
             message: "Get token success",
-            metadata: await AccessService.handlerRefreshToken(
-                req.body.refreshToken
-            ),
+            metadata: await AccessService.handlerRefreshToken({
+                refreshToken: req.refreshToken,
+                user: req.user,
+                keyStore: req.keyStore,
+            }),
         }).send(res);
     };
+
     login = async (req, res, next) => {
         new SuccessResponse({
             metadata: await AccessService.login(req.body),
         }).send(res);
     };
+
     logout = async (req, res, next) => {
         new SuccessResponse({
             metadata: await AccessService.logout(req.keyStore),
@@ -31,7 +35,6 @@ class AccessController {
                 limit: 10,
             },
         }).send(res);
-        // return res.status(201).json(await AccessService.signUp(req.body));
     };
 }
 
