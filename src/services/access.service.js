@@ -13,6 +13,7 @@ const {
     AuthFailureError,
     ForbiddenError,
 } = require("../core/error.response");
+const keyTokenModel = require("../models/keyToken.model");
 
 const RoleShop = {
     SHOP: "SHOP",
@@ -45,7 +46,7 @@ class AccessService {
         if (keyStore.refreshToken !== refreshToken)
             throw new AuthFailureError("Shop not registered");
 
-        const foundShop = await findShopByEmail({ email });
+        const foundShop = await ShopService.findShopByEmail({ email });
 
         if (!foundShop) throw new AuthFailureError("Shop not registered 64");
 
@@ -57,7 +58,7 @@ class AccessService {
         );
 
         // update token
-        await keyStore.updateOne({
+        await keyTokenModel.updateOne({
             $set: {
                 refreshToken: tokens.refreshToken,
             },
