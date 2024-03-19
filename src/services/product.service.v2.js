@@ -29,7 +29,6 @@ class ProductFactory {
     static async findAllDraftsForShop({ product_shop, limit = 50, skip = 0 }) {
         const query = { product_shop, isDraft: true };
         const result = await findAllDraftsForShop({ query, limit, skip });
-        console.log("findall", result);
         return result;
     }
 }
