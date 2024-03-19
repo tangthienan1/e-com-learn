@@ -63,7 +63,7 @@ class AccessService {
                 refreshToken: tokens.refreshToken,
             },
             $addToSet: {
-                refreshTokensUsed: refreshToken, // da duoc su dung de lay token moi roi
+                refreshTokensUsed: refreshToken,
             },
         });
 
@@ -151,31 +151,6 @@ class AccessService {
 
         if (newShop) {
             // created privateKey, publicKey base on asymmetric cryptography
-
-            /**
-             * privateKey: stored on client side (not on server side), this used for sign token
-             * publicKey: stored on server side, this used for verify token
-             * Ex: incase Hacker connect to our db, they just have publicKey which use for verification only.
-             */
-
-            /**
-             * This is the hardcore privateKey, publicKey version
-             * -->
-             * const { privateKey, publicKey } = crypto.generateKeyPairSync(
-             *     "rsa",
-             *     {
-             *         modulusLength: 4096,
-             *         publicKeyEncoding: {
-             *             type: "pkcs1",
-             *             format: "pem",
-             *         },
-             *         privateKeyEncoding: {
-             *             type: "pkcs1",
-             *             format: "pem",
-             *         },
-             *     }
-             * );
-             */
 
             const { privateKey, publicKey } = getKeyPair();
 
