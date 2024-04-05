@@ -4,7 +4,6 @@ const { findApiKeyByKey } = require("../services/apiKey.service.js");
 
 const HEADER = {
     API_KEY: "x-api-key",
-    AUTHORIZATION: "authorization",
 };
 
 const verifyApiKey = async (req, res, next) => {

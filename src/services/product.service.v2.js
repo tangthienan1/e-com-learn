@@ -11,6 +11,7 @@ const {
     findAllDraftsForShop,
     findAllPublishForShop,
     publishProductByShop,
+    searchProductByUser,
 } = require("../models/repositories/product.repo");
 
 // define Factory class to create product
@@ -30,21 +31,35 @@ class ProductFactory {
     }
 
     // query //
-    static async findAllDraftsForShop({ product_shop, limit = 50, skip = 0 }) {
-        const query = { product_shop, isDraft: true };
-        const result = await findAllDraftsForShop({ query, limit, skip });
+    static async findAllDraftsForShop({ product_shop }) {
+        const result = await findAllDraftsForShop({
+            product_shop,
+            limit: 50,
+            skip: 0,
+        });
         return result;
     }
 
-    static async findAllPublishForShop({ product_shop, limit = 50, skip = 0 }) {
-        const query = { product_shop, isPublish: true };
-        const result = await findAllPublishForShop({ query, limit, skip });
-        return result;
+    static async findAllPublishForShop({ product_shop }) {
+        return await findAllPublishForShop({
+            product_shop,
+            limit: 50,
+            skip: 0,
+        });
     }
+
+    static async searchProducts({ keySearch }) {
+        return await searchProductByUser({ keySearch });
+    }
+    // end Query //
 
     // PUT //
-    static async publishProductByShop({ product_shop, product_id }) {
-        return await publishProductByShop({ product_id, product_shop });
+    static async publishProductByShop({ product_shop }) {
+        return await publishProductByShop({ product_shop, limit: 50, skip: 0 });
+    }
+
+    static async unPublishProductByShop({ product_shop }) {
+        return await publishProductByShop({ product_shop, limit: 50, skip: 0 });
     }
     // END PUT //
 }

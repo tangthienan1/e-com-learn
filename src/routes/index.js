@@ -10,8 +10,8 @@ router.use(verifyApiKey);
 // check permission which map from x-api-key
 router.use(permission("0000"));
 
-router.use("/v1/api", require("./access"));
 router.use("/v1/api/product", require("./product"));
+router.use("/v1/api", require("./access"));
 
 router.get("/health", (req, res, next) => {
     return res.status(200).json("OK!");
