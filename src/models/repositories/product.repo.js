@@ -7,6 +7,7 @@ const {
     furniture,
 } = require("../../models/product.model");
 const { Types } = require("mongoose");
+const { mongoSelectConverter } = require("../../utils");
 
 const findAllDraftsForShop = async ({ product_shop, limit, skip }) => {
     const query = { product_shop, isDraft: true };
@@ -18,7 +19,26 @@ const findAllPublishForShop = async ({ product_shop, limit, skip }) => {
     return await queryProduct({ query, limit, skip });
 };
 
-const searchProductByUser = async ({ keySearch }) => {
+const findAllProducts = async ({ limit, sort, page, filter, select }) => {
+    const skip = (page - 1) * limit;
+    const sortBy = sort === "ctime" ? { _id: -1 } : { _id: 1 };
+
+    return await product
+        .find(filter)
+        .sort(sortBy)
+        .skip(skip)
+        .limit(limit)
+        .select(mongoSelectConverter(select))
+        .lean();
+};
+
+const findProduct = async ({ product_id, unSelect }) => {
+    return await product
+        .findById(product_id)
+        .select(mongoSelectConverter(unSelect, false));
+};
+
+const searchProductByUser = async (keySearch) => {
     const regexSearch = new RegExp(keySearch);
     const results = await product
         .find(
@@ -77,6 +97,8 @@ const unPublishProductByShop = async ({ product_shop, product_id }) => {
 module.exports = {
     findAllDraftsForShop,
     findAllPublishForShop,
+    findAllProducts,
+    findProduct,
     publishProductByShop,
     unPublishProductByShop,
     searchProductByUser,

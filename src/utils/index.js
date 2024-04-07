@@ -37,7 +37,13 @@ const getKeyPair = () => {
     return { privateKey, publicKey };
 };
 
+// ['a', 'b'] => {a: 1, b: 1}
+const mongoSelectConverter = (select = [], isSelect = true) => {
+    return Object.fromEntries(select.map((el) => [el, isSelect ? 1 : 0]));
+};
+
 module.exports = {
     getInfoData,
     getKeyPair,
+    mongoSelectConverter,
 };
